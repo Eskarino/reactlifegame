@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 
@@ -7,6 +7,7 @@ function Square(props) {
     let bgcolor = props.value ? 'black' : 'white' // Fait perdre de la vitesse
     return (
         <button className="square" onClick={props.onClick} style={{backgroundColor: bgcolor}}> 
+            {props.value}
         </button>
     );
 }
@@ -57,8 +58,7 @@ class Game extends React.Component {
                 squares: Array(props.size*props.size).fill(null)
             }],
             size: props.size,
-            list_of_neighbors: calculateAllNeighbors(props.size),
-            delay: 1000,
+            list_of_neighbors: calculateAllNeighbors(props.size)
         }
     }
 
@@ -75,7 +75,7 @@ class Game extends React.Component {
     }
 
     forward() {
-        const history = this.state.history.slice(-10);
+        const history = this.state.history.slice();
         const current = history[history.length-1];
         const squares = current.squares.slice();
 
@@ -103,9 +103,9 @@ class Game extends React.Component {
         });
     }
 
-    reset_board(percentage) {
+    reset_filled() {
         const history = this.state.history.slice();
-        const squares = Array.from({length: this.state.size*this.state.size}, () => Math.random()<percentage ? 'X' : null);
+        const squares = Array.from({length: this.state.size*this.state.size}, () => Math.random()>0.5 ? 'X' : null);
         this.setState({
             history: history.concat([{
             squares: squares,
@@ -122,22 +122,11 @@ class Game extends React.Component {
                 <div className="game-board">
                     <Board size = {this.state.size} squares = {current.squares} onClick={(i) => this.handleClick(i)} />
                 </div>
-                <div className="buttons">
-                    <p>
-                        <button onClick={()=> this.forward()}>One step</button>
-                    </p>
-                    <p>
-                        <button onClick={()=> this.reset_board(0.3)}>Fill the board</button>
-                    </p>
-                    <p>
-                        <button onClick={()=> this.reset_board(0)}>Reset empty</button>
-                    </p>
-                    <p>
-                        <Counter onChange={()=> this.forward()}/>
-                    </p>
+                <div>
+                <button onClick={()=> this.forward()}>FORWARD !!</button>
+                <button onClick={()=> this.reset_filled()}>RESET FILLED !!</button>
                 </div>
             </div>
-            
         )
     }
 }
@@ -182,47 +171,5 @@ class Game extends React.Component {
         neighbors_list.push(neighbors);
     }
     return neighbors_list;
-}
 
-
-function Counter(props) {
-    const [count, setCount] = useState(0);
-    const [delay, setDelay] = useState(0);
-  
-    useInterval(() => {
-      props.onChange()
-      setCount(count + 1);
-    }, delay);
-  
-    return (
-        <>
-        <p>
-            <button onClick={()=> setDelay(100)}>Start</button>
-        </p>
-        <p>
-            <button onClick={()=> setDelay(0)}>Stop</button>
-        </p>
-        </>
-        
-    );
-}
-  
-function useInterval(callback, delay) {
-    const savedCallback = useRef();
-  
-    // Remember the latest function.
-    useEffect(() => {
-        savedCallback.current = callback;
-    }, [callback]);
-  
-    // Set up the interval.
-    useEffect(() => {
-        function tick() {
-            savedCallback.current();
-      }
-      if (delay !== 0) {
-            let id = setInterval(tick, delay);
-            return () => clearInterval(id);
-      }
-    }, [delay]);
   }
